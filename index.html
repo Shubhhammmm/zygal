@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .calendar-container {
+      text-align: center;
+    }
+
+    .days-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .day {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .selected {
+      background-color: blue;
+      color: white;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      max-width: 300px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    #selected-dates {
+      width: 305px;
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: blue;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="calendar-container">
+  <div class="header">
+    <button id="prev-btn">Prev</button>
+    <div id="current-month"></div>
+    <button id="next-btn">Next</button>
+  </div>
+  <div class="days-header"></div>
+  <div id="calendar" class="calendar"></div>
+  <div id="selected-dates" class="selected-dates"></div>
+</div>
+
+<script>
+  let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarContainer = document.querySelector('.calendar');
+    const daysHeaderContainer = document.querySelector('.days-header');
+    const selectedDatesContainer = document.getElementById('selected-dates');
+    const currentMonthElement = document.getElementById('current-month');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    let selectedDates = [];
+
+    function renderDays() {
+      days.forEach(day => {
+        const dayHeader = document.createElement('div');
+        dayHeader.textContent = day;
+        dayHeader.classList.add('day', 'disabled');
+        daysHeaderContainer.appendChild(dayHeader);
+      });
+    }
+
+    function renderCalendar(year, month) {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+      currentMonthElement.textContent = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+
+      calendarContainer.innerHTML = '';
+
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        const dayElement = document.createElement('div');
+        dayElement.classList.add('day', 'disabled');
+        calendarContainer.appendChild(dayElement);
+      }
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dayElement = document.createElement('div');
+        dayElement.textContent = i;
+        dayElement.classList.add('day');
+        dayElement.addEventListener('click', () => toggleDate(year, month, i, dayElement));
+        calendarContainer.appendChild(dayElement);
+      }
+
+      highlightSelectedDates();
+    }
+
+    function toggleDate(year, month, day, dayElement) {
+      const date = new Date(year, month, day);
+
+      const selectedIndex = selectedDates.findIndex(selectedDate =>
+        selectedDate.getTime() === date.getTime()
+      );
+
+      if (selectedIndex !== -1) {
+        selectedDates.splice(selectedIndex, 1);
+      } else {
+        selectedDates.push(date);
+      }
+
+      dayElement.classList.toggle('selected');
+      renderSelectedDates();
+    }
+
+    function renderSelectedDates() {
+      selectedDatesContainer.innerHTML = '<span> User Selected Dates: </span> [ ' + selectedDates.map(date =>
+        date.toLocaleDateString()).join(',  ') + " ] ";
+    }
+
+    function highlightSelectedDates() {
+      const days = calendarContainer.querySelectorAll('.day');
+      days.forEach((day, index) => {
+        const date = new Date(year, month, index + 1);
+        if (selectedDates.some(selectedDate =>
+          selectedDate.getTime() === date.getTime()
+        )) {
+          day.classList.add('selected');
+        } else {
+          day.classList.remove('selected');
+        }
+      });
+    }
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+
+    prevBtn.addEventListener('click', () => {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar(currentYear, currentMonth);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar(currentYear, currentMonth);
+    });
+
+    renderDays();
+    renderCalendar(currentYear, currentMonth);
+  });
+</script>
+
+</body>
+</html>
